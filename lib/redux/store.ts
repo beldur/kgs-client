@@ -1,4 +1,5 @@
-import { type Action, configureStore, type ThunkAction } from '@reduxjs/toolkit'
+import type { Action, ThunkAction } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import {
   type TypedUseSelectorHook,
   useDispatch as useReduxDispatch,
@@ -6,10 +7,14 @@ import {
 } from 'react-redux'
 
 import { middlewares } from './middlewares'
-import { reducer } from './rootReducer'
+import { authSlice } from './slices/auth/authSlice'
+import { kgsSlice } from './slices/kgs/kgsSlice'
 
 export const reduxStore = configureStore({
-  reducer,
+  reducer: {
+    auth: authSlice.reducer,
+    kgs: kgsSlice.reducer,
+  },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(middlewares),
 })

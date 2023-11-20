@@ -4,6 +4,8 @@ import { createSlice } from '@reduxjs/toolkit'
 import type * as KGS from '@/lib/api/types'
 import { KGSMessageType } from '@/lib/api/types'
 
+import { sendMessage } from '../../../api/kgs'
+import { createAppAsyncThunk } from '../../createAppAsyncThunk'
 import { authSlice } from '../auth/authSlice'
 
 interface KGSSliceState {
@@ -169,8 +171,8 @@ export const kgsSlice = createSlice({
           payload.type === KGSMessageType.CHAT
             ? 'chat'
             : payload.type === KGSMessageType.ANNOUNCE
-            ? 'announcement'
-            : 'moderaterChat',
+              ? 'announcement'
+              : 'moderaterChat',
       })
     },
     setActiveRoom: (state, { payload }: PayloadAction<{ roomID: number }>) => {
@@ -204,4 +206,44 @@ export const kgsSlice = createSlice({
   },
 })
 
-export default kgsSlice.reducer
+export const sendChat = createAppAsyncThunk(
+  'kgs/sendChat',
+  async (
+    { channelId, text }: { channelId: number; text: string },
+    { rejectWithValue, signal },
+  ) => {
+    try {
+      const response = await sendMessage(
+        {
+          type: KGSMessageType.CHAT,
+          text,
+          channelId,
+        },
+        signal,
+      )
+
+      return await response.text()
+    } catch (e) {
+      return rejectWithValue((e as Error).message)
+    }
+  },
+)
+
+export const joinRequest = createAppAsyncThunk(
+  'kgs/joinRequest',
+  async ({ channelId }: { channelId: number }, { rejectWithValue, signal }) => {
+    try {
+      const response = await sendMessage(
+        {
+          type: KGSMessageType.JOIN_REQUEST,
+          channelId,
+        },
+        signal,
+      )
+
+      return await response.text()
+    } catch (e) {
+      return rejectWithValue((e as Error).message)
+    }
+  },
+)

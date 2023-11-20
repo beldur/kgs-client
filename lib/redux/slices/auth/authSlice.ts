@@ -1,8 +1,12 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 
-import { login } from '@/lib/api/kgs'
-import type { KGSMessage_LoginSuccess, KGSUser } from '@/lib/api/types'
+import { sendMessage } from '@/lib/api/kgs'
+import {
+  type KGSMessage_LoginSuccess,
+  KGSMessageType,
+  type KGSUser,
+} from '@/lib/api/types'
 
 import { createAppAsyncThunk } from '../../createAppAsyncThunk'
 
@@ -33,11 +37,20 @@ export const authSlice = createSlice({
 
 export const userLogin = createAppAsyncThunk(
   'auth/userLogin',
-  async ({ username, password }: { username: string; password: string }) => {
-    const response = await login(username, password)
+  async (
+    { name, password }: { name: string; password: string },
+    { signal },
+  ) => {
+    const response = await sendMessage(
+      {
+        type: KGSMessageType.LOGIN,
+        locale: 'en_US',
+        name,
+        password,
+      },
+      signal,
+    )
 
     return await response.text()
   },
 )
-
-export default authSlice.reducer

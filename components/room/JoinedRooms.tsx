@@ -1,29 +1,29 @@
-import type { KGSRoom } from '@/lib/api/types'
+import Link from 'next/link'
+
+import { selectJoinedRooms } from '@/lib/redux/slices/kgs/selectors'
+import { useSelector } from '@/lib/redux/store'
 
 interface JoinedRoomsProps {
-  joinedRooms: KGSRoom[]
   activeRoomID: number | null
-  onRoomClick: (roomID: number) => void
 }
 
-const JoinedRooms = ({
-  joinedRooms,
-  activeRoomID,
-  onRoomClick,
-}: JoinedRoomsProps) => (
-  <ul className="tabs flex gap-2">
-    {joinedRooms.map(room => (
-      <li
-        className={`tab tab-bordered cursor-pointer ${
-          activeRoomID === room.channelId ? 'tab-active' : ''
-        }`}
-        key={room.channelId}
-        onClick={() => onRoomClick(room.channelId)}
-      >
-        {room.name}
-      </li>
-    ))}
-  </ul>
-)
+const JoinedRoomsList = ({ activeRoomID }: JoinedRoomsProps) => {
+  const joinedRooms = useSelector(selectJoinedRooms)
 
-export default JoinedRooms
+  return (
+    <ul className="tabs tabs-bordered flex gap-2">
+      {joinedRooms.map(room => (
+        <li
+          className={`tab hover:tab-active ${
+            activeRoomID === room.channelId ? 'tab-active' : ''
+          }`}
+          key={room.channelId}
+        >
+          <Link href={`/kgs/room/${room.channelId}`}>{room.name}</Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export default JoinedRoomsList

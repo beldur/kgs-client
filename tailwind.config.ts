@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       gridTemplateColumns: {
-        room: '3fr 1fr',
+        room: '6fr 1fr',
       },
     },
   },

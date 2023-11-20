@@ -1,11 +1,14 @@
-import type { KGSGameChannel } from './api/types'
+import type { KGSGameChannel, KGSUser } from './api/types'
 import { KGSGameType } from './api/types'
 import { rankToNumber } from './users'
 
 const playersToArray = (players: KGSGameChannel['players']) =>
   Object.values(players)
 
-export const byRankAndType = (gA: KGSGameChannel, gB: KGSGameChannel) => {
+export const sortGameByRankAndType = (
+  gA: KGSGameChannel,
+  gB: KGSGameChannel,
+) => {
   if (
     (gA.gameType === KGSGameType.CHALLENGE &&
       gB.gameType !== KGSGameType.CHALLENGE) ||
@@ -29,8 +32,13 @@ export const byRankAndType = (gA: KGSGameChannel, gB: KGSGameChannel) => {
   const highestPlayerFromGameB = playersToArray(gB.players).reduce((a, b) =>
     rankToNumber(a.rank) > rankToNumber(b.rank) ? a : b,
   )
-  const playerGameARank = rankToNumber(highestPlayerFromGameA.rank)
-  const playerGameBRank = rankToNumber(highestPlayerFromGameB.rank)
 
-  return playerGameARank >= playerGameBRank ? -1 : 1
+  return sortUserByRank(highestPlayerFromGameA, highestPlayerFromGameB)
+}
+
+export const sortUserByRank = (uA: KGSUser, uB: KGSUser) => {
+  const playerARank = rankToNumber(uA.rank)
+  const playerBRank = rankToNumber(uB.rank)
+
+  return playerARank >= playerBRank ? -1 : 1
 }

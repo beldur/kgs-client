@@ -1,8 +1,12 @@
 // Messaging
 
 export enum KGSMessageType {
-  HELLO = 'HELLO',
+  // Upstream Messages
   LOGIN = 'LOGIN',
+  JOIN_REQUEST = 'JOIN_REQUEST',
+
+  // Downstream Messages
+  HELLO = 'HELLO',
   LOGOUT = 'LOGOUT',
   LOGIN_FAILED_NO_SUCH_USER = 'LOGIN_FAILED_NO_SUCH_USER',
   LOGIN_FAILED_BAD_PASSWORD = 'LOGIN_FAILED_BAD_PASSWORD',
@@ -26,20 +30,35 @@ export enum KGSMessageType {
 
 export type KGSMessage = {
   type: KGSMessageType
-} & (KGSMessage_Empty | KGSMessage_Login | KGSMessage_LoginSuccess)
+} & (KGSMessage_Empty | KGSUpstreamMessage_Login | KGSMessage_LoginSuccess)
 
 export interface KGSMessage_Empty {}
 
-// Always the first message you receive.
-export interface KGSMessage_Hello extends KGSServerVersion {
-  type: KGSMessageType.HELLO
-}
+// Upstream Messages
 
-export interface KGSMessage_Login {
+export interface KGSUpstreamMessage_Login {
   type: KGSMessageType.LOGIN
   locale: string
   name: string
   password: string
+}
+
+export interface KGSUpstreamMessage_Chat {
+  type: KGSMessageType.CHAT
+  text: string
+  channelId: number
+}
+
+export interface KGSUpstreamMessage_JoinRequest {
+  type: KGSMessageType.JOIN_REQUEST
+  channelId: number
+}
+
+// Downstream Messages
+
+// Always the first message you receive.
+export interface KGSMessage_Hello extends KGSServerVersion {
+  type: KGSMessageType.HELLO
 }
 
 // You have logged in successfully.
