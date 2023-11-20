@@ -10,7 +10,7 @@ import { selectIsLoggedIn } from '@/lib/redux/slices/auth/selectors'
 import { selectActiveRoomID } from '@/lib/redux/slices/kgs/selectors'
 import { useDispatch, useSelector } from '@/lib/redux/store'
 
-export const Home = () => {
+const Home = () => {
   const dispatch = useDispatch()
   const router = useRouter()
   const isLoggedIn = useSelector(selectIsLoggedIn)
