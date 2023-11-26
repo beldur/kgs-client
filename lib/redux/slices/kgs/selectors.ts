@@ -3,15 +3,18 @@ import { createSelector } from '@reduxjs/toolkit'
 import { sortGameByRankAndType, sortUserByRank } from '@/lib/games'
 
 import type { ReduxState } from '../../store'
+import type { KGSRoomWithCategory } from './kgsSlice'
 
 const selectKGS = (state: ReduxState) => state.kgs
 
-const selectJoinedRoomIds = (state: ReduxState) => selectKGS(state).joinedRooms
+export const selectJoinedRoomIds = (state: ReduxState) =>
+  selectKGS(state).joinedRooms
 const selectRoomsByID = (state: ReduxState) => selectKGS(state).roomsByID
 const selectGamesByID = (state: ReduxState) => selectKGS(state).gamesByID
 const selectUsersByID = (state: ReduxState) => selectKGS(state).usersByID
 const selectRoomGames = (state: ReduxState) => selectKGS(state).roomGames
 const selectRoomUsers = (state: ReduxState) => selectKGS(state).roomUsers
+const selectRoomOwners = (state: ReduxState) => selectKGS(state).roomOwners
 const selectRoomChats = (state: ReduxState) => selectKGS(state).roomChats
 
 export const selectActiveRoomID = (state: ReduxState) =>
@@ -71,9 +74,26 @@ export const selectUserByID = createSelector(
     (usersByID as ReturnType<typeof selectUsersByID>)[userID as string],
 )
 
+export const selectRoomOwnersByID = createSelector(
+  selectRoomOwners,
+  (_, roomID: number) => roomID,
+  (roomOwners, roomID) =>
+    (roomOwners as ReturnType<typeof selectRoomOwners>)[roomID as number],
+)
+
 export const selectActiveRoomChat = createSelector(
   selectActiveRoomID,
   selectRoomChats,
   (activeRoomID, roomChats) =>
     activeRoomID !== null ? roomChats[activeRoomID] : [],
+)
+
+export const selectRoomsByCategory = createSelector(
+  selectRoomsByID,
+  (roomsByID): { [category: string]: KGSRoomWithCategory[] } =>
+    // @ts-expect-error `groupBy` is not in the type definition
+    Object.groupBy(
+      Object.values(roomsByID).toSorted((a, b) => a.name.localeCompare(b.name)),
+      (element: KGSRoomWithCategory) => element.category,
+    ),
 )

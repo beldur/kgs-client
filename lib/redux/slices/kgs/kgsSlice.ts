@@ -1,24 +1,43 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
-import { createSlice } from '@reduxjs/toolkit'
-
 import type * as KGS from '@/lib/api/types'
-import { KGSMessageType } from '@/lib/api/types'
 
-import { sendMessage } from '../../../api/kgs'
-import { createAppAsyncThunk } from '../../createAppAsyncThunk'
+import { createSliceWithThunks } from '../../createSliceWithThunks'
 import { authSlice } from '../auth/authSlice'
+import { automatchPrefs } from './kgsSlice/automatchPrefs'
+import { chat } from './kgsSlice/chat'
+import { gameJoin } from './kgsSlice/gameJoin'
+import { gameList } from './kgsSlice/gameList'
+import { gameRemoved } from './kgsSlice/gameRemoved'
+import { joinRequest } from './kgsSlice/joinRequest'
+import { joinRoom } from './kgsSlice/joinRoom'
+import { roomDesc } from './kgsSlice/roomDesc'
+import { roomDescriptionRequest } from './kgsSlice/roomDescriptionRequest'
+import { roomNames } from './kgsSlice/roomNames'
+import { roomNamesRequest } from './kgsSlice/roomNamesRequest'
+import { sendChat } from './kgsSlice/sendChat'
+import { serverVersion } from './kgsSlice/serverVersion'
+import { setActiveRoom } from './kgsSlice/setActiveRoom'
+import { unjoin } from './kgsSlice/unjoin'
+import { unjoinRequest } from './kgsSlice/unjoinRequest'
+import { userAdded } from './kgsSlice/userAdded'
+import { userRemoved } from './kgsSlice/userRemoved'
+import { userUpdate } from './kgsSlice/userUpdate'
 
-interface KGSSliceState {
-  roomsByID: {
-    [channelID: number]: KGS.KGSRoom & {
-      category: string
-      description: string
-    }
-  }
+export interface KGSRoomWithCategory extends KGS.KGSRoom {
+  category: string
+  description: string
+}
+
+export interface KGSSliceState {
+  // Users
   usersByID: {
     [userID: string]: KGS.KGSUser
   }
   friends: { name: string; friendType: KGS.KGSFriendType; notes?: string }[]
+
+  // Rooms
+  roomsByID: {
+    [channelID: number]: KGSRoomWithCategory
+  }
   roomCategoriesByID: { [roomCategoryID: number]: string }
   roomUsers: { [channelID: number]: string[] }
   roomOwners: { [channelID: number]: string[] }
@@ -34,8 +53,13 @@ interface KGSSliceState {
   joinedRooms: number[]
   activeRoomID: null | number
   gamesByID: { [gameID: number]: KGS.KGSGameChannel }
+
   automatchPrefs: null | KGS.KGSAutomatchPrefs
   serverVersion: null | KGS.KGSServerVersion
+
+  // Games
+  joinedGames: number[]
+  joinedGamesByID: { [gameID: number]: KGS.KGSMessage_GameJoin }
 }
 
 const initialState: KGSSliceState = {
@@ -52,133 +76,38 @@ const initialState: KGSSliceState = {
   gamesByID: {},
   automatchPrefs: null,
   serverVersion: null,
+  joinedGames: [],
+  joinedGamesByID: {},
 }
 
-export const kgsSlice = createSlice({
+export const kgsSlice = createSliceWithThunks({
   name: 'kgs',
   initialState,
-  reducers: {
-    serverVersion: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_Hello>,
-    ) => {
-      state.serverVersion = payload
-    },
-    roomNames: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_RoomNames>,
-    ) => {
-      for (const room of payload.rooms) {
-        state.roomsByID[room.channelId] = {
-          ...state.roomsByID[room.channelId],
-          ...room,
-        }
-        state.roomUsers[room.channelId] = []
-        state.roomGames[room.channelId] = []
-        state.roomChats[room.channelId] = []
-      }
-    },
-    roomDesc: (state, { payload }: PayloadAction<KGS.KGSMessage_RoomDesc>) => {
-      state.roomsByID[payload.channelId].description = payload.description
+  reducers: create => ({
+    // Downstream Message reducer
+    serverVersion: create.reducer(serverVersion),
+    roomNames: create.reducer(roomNames),
+    roomDesc: create.reducer(roomDesc),
+    joinRoom: create.reducer(joinRoom),
+    userAdded: create.reducer(userAdded),
+    userUpdate: create.reducer(userUpdate),
+    userRemoved: create.reducer(userRemoved),
+    gameRemoved: create.reducer(gameRemoved),
+    gameList: create.reducer(gameList),
+    automatchPrefs: create.reducer(automatchPrefs),
+    chat: create.reducer(chat),
+    setActiveRoom: create.reducer(setActiveRoom),
+    gameJoin: create.reducer(gameJoin),
+    unjoin: create.reducer(unjoin),
 
-      if (payload.owners) {
-        state.roomOwners[payload.channelId] = payload.owners.map(
-          user => user.name,
-        )
-      }
-    },
-    joinRoom: (state, { payload }: PayloadAction<KGS.KGSMessage_RoomJoin>) => {
-      for (const user of payload.users) {
-        state.usersByID[user.name] = user
-      }
-      state.roomUsers[payload.channelId] = payload.users.map(user => user.name)
-
-      if (payload.games) {
-        for (const game of payload.games) {
-          state.gamesByID[game.channelId] = game
-          state.roomGames[game.roomId].push(game.channelId)
-        }
-      }
-
-      if (!state.joinedRooms.includes(payload.channelId)) {
-        state.joinedRooms.push(payload.channelId)
-      }
-
-      if (!state.activeRoomID) {
-        state.activeRoomID = payload.channelId
-      }
-    },
-    userAdded: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_UserAdded>,
-    ) => {
-      const userName = payload.user.name
-
-      state.usersByID[userName] = payload.user
-
-      if (!state.roomUsers[payload.channelId].includes(userName)) {
-        state.roomUsers[payload.channelId].push(userName)
-      }
-    },
-    userUpdate: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_UserUpdate>,
-    ) => {
-      state.usersByID[payload.user.name] = payload.user
-    },
-    userRemoved: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_UserRemoved>,
-    ) => {
-      state.roomUsers[payload.channelId] = state.roomUsers[
-        payload.channelId
-      ].filter(username => username !== payload.user.name)
-    },
-    gameRemoved: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_GameContainerRemoveGame>,
-    ) => {
-      delete state.gamesByID[payload.gameId]
-      state.roomGames[payload.channelId] = state.roomGames[
-        payload.channelId
-      ].filter(g => g !== payload.gameId)
-    },
-    gameList: (state, { payload }: PayloadAction<KGS.KGSMessage_GameList>) => {
-      for (const game of payload.games) {
-        state.gamesByID[game.channelId] = game
-
-        if (!state.roomGames[payload.channelId].includes(game.channelId)) {
-          state.roomGames[payload.channelId].push(game.channelId)
-        }
-      }
-    },
-    automatchPrefs: (
-      state,
-      { payload }: PayloadAction<KGS.KGSMessage_AutomatchPrefs>,
-    ) => {
-      state.automatchPrefs = payload
-    },
-    chat: (state, { payload }: PayloadAction<KGS.KGSMessage_Chat>) => {
-      if (!state.roomChats[payload.channelId]) {
-        state.roomChats[payload.channelId] = []
-      }
-
-      state.roomChats[payload.channelId].push({
-        text: payload.text,
-        username: payload.user.name,
-        timestamp: new Date().toUTCString(),
-        type:
-          payload.type === KGSMessageType.CHAT
-            ? 'chat'
-            : payload.type === KGSMessageType.ANNOUNCE
-              ? 'announcement'
-              : 'moderaterChat',
-      })
-    },
-    setActiveRoom: (state, { payload }: PayloadAction<{ roomID: number }>) => {
-      state.activeRoomID = payload.roomID
-    },
-  },
+    // Upstream Message reducer
+    unjoinRequest: create.asyncThunk(unjoinRequest),
+    joinRequest: create.asyncThunk(joinRequest),
+    roomNamesRequest: create.asyncThunk(roomNamesRequest),
+    roomDescriptionRequest: create.asyncThunk(roomDescriptionRequest),
+    sendChat: create.asyncThunk(sendChat),
+    clear: create.reducer(() => initialState),
+  }),
   extraReducers: builder => {
     builder.addCase(authSlice.actions.loginSuccess, (state, { payload }) => {
       for (const room of payload.rooms) {
@@ -205,45 +134,3 @@ export const kgsSlice = createSlice({
     })
   },
 })
-
-export const sendChat = createAppAsyncThunk(
-  'kgs/sendChat',
-  async (
-    { channelId, text }: { channelId: number; text: string },
-    { rejectWithValue, signal },
-  ) => {
-    try {
-      const response = await sendMessage(
-        {
-          type: KGSMessageType.CHAT,
-          text,
-          channelId,
-        },
-        signal,
-      )
-
-      return await response.text()
-    } catch (e) {
-      return rejectWithValue((e as Error).message)
-    }
-  },
-)
-
-export const joinRequest = createAppAsyncThunk(
-  'kgs/joinRequest',
-  async ({ channelId }: { channelId: number }, { rejectWithValue, signal }) => {
-    try {
-      const response = await sendMessage(
-        {
-          type: KGSMessageType.JOIN_REQUEST,
-          channelId,
-        },
-        signal,
-      )
-
-      return await response.text()
-    } catch (e) {
-      return rejectWithValue((e as Error).message)
-    }
-  },
-)

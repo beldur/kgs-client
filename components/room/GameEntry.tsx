@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import type { KGSGameChannel } from '@/lib/api/types'
 import { KGSGameType } from '@/lib/api/types'
@@ -21,6 +21,7 @@ const GameEntry = ({ game }: GameEntryProps) => {
     adjourned: gameIsAdjourned,
   } = game
   const gameIsChallenge = game.gameType === KGSGameType.CHALLENGE
+  const router = useRouter()
 
   let { gameType, size: gameSize } = game
   let playerA
@@ -42,41 +43,37 @@ const GameEntry = ({ game }: GameEntryProps) => {
 
   const gameTypeString = gameTypeToString(gameType)
 
+  const handleRowClick = () => {
+    router.push(`/kgs/game/${gameID}`)
+  }
+
   return (
-    <tr title={JSON.stringify(game)} className="hover">
-      <Link
-        className={classNames(
-          'grid gap-1 grid-cols-[3rem_1fr_1fr_1fr_1fr_1fr]',
-          {
-            'font-bold': game.gameType === KGSGameType.CHALLENGE,
-            'opacity-50': gameIsOver || gameIsAdjourned,
-          },
-        )}
-        href={`/kgs/game/${gameID}`}
-      >
-        <td className="overflow-hidden">{gameTypeString}</td>
-        <td>{playerA && <UserName user={playerA} />}</td>
-        <td>{playerB && <UserName user={playerB} />}</td>
-        <td
-          className={classNames({ 'col-span-3': gameIsChallenge })}
-        >{`${gameSize}x${gameSize}${
-          gameIsChallenge && game.name ? `, ${game.name}` : ''
-        }`}</td>
-        {!gameIsChallenge && (
-          <>
-            {gameIsOver && game.score ? (
-              <td>
-                <GameEntryScore score={game.score} />
-              </td>
-            ) : (
-              <td>{moveNum && `Mv ${moveNum}`}</td>
-            )}
+    <tr
+      title={JSON.stringify(game)}
+      className={classNames('hover cursor-pointer', {
+        'font-bold': game.gameType === KGSGameType.CHALLENGE,
+        'opacity-50': gameIsOver || gameIsAdjourned,
+      })}
+      onClick={handleRowClick}
+    >
+      <td className="overflow-hidden">{gameTypeString}</td>
+      <td>{playerA && <UserName user={playerA} />}</td>
+      <td>{playerB && <UserName user={playerB} />}</td>
+      <td colSpan={gameIsChallenge ? 3 : undefined}>{`${gameSize}x${gameSize}${
+        gameIsChallenge && game.name ? `, ${game.name}` : ''
+      }`}</td>
+      {!gameIsChallenge && (
+        <>
+          {gameIsOver && game.score ? (
             <td>
-              {typeof observers !== 'undefined' && `Ob ${observers || 0}`}
+              <GameEntryScore score={game.score} />
             </td>
-          </>
-        )}
-      </Link>
+          ) : (
+            <td>{moveNum && `Mv ${moveNum}`}</td>
+          )}
+          <td>{typeof observers !== 'undefined' && `Ob ${observers || 0}`}</td>
+        </>
+      )}
     </tr>
   )
 }

@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 
-import { sendChat } from '@/lib/redux/slices/kgs/kgsSlice'
+import { kgsSlice } from '@/lib/redux/slices/kgs/kgsSlice'
 import {
   selectActiveRoomChat,
   selectActiveRoomID,
@@ -19,7 +19,7 @@ const RoomChat = () => {
     e.preventDefault()
 
     if (text.length > 0) {
-      dispatch(sendChat({ channelId: activeRoomID, text }))
+      dispatch(kgsSlice.actions.sendChat({ channelId: activeRoomID, text }))
       setChatLine('')
     }
   }
