@@ -15,5 +15,5 @@ export const unjoin = (
   delete state.roomUsers[payload.channelId]
   delete state.roomChats[payload.channelId]
 
-  state.activeRoomID = state.joinedRooms[state.joinedGames.length - 1] ?? null
+  state.activeRoomID = state.joinedRooms[state.joinedRooms.length - 1] ?? null
 }
