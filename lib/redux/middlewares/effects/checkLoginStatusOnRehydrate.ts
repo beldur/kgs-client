@@ -20,7 +20,10 @@ export const checkLoginStatusOnRehydrate: AppListenerEffect = async (
         type: KGSMessageType.WAKE_UP,
       })
 
-      if (location.pathname !== '/kgs/room') {
+      if (
+        location.pathname !== '/kgs/room' &&
+        location.pathname !== '/kgs/game'
+      ) {
         location.href = `/kgs/room`
       }
     } else {

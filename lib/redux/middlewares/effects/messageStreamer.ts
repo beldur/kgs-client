@@ -97,6 +97,11 @@ export const messageStreamer: AppListenerEffect = async (
             kgsSlice.actions.gameJoin(message as KGS.KGSMessage_GameJoin),
           )
           break
+        case KGS.KGSMessageType.GAME_UPDATE:
+          dispatch(
+            kgsSlice.actions.gameUpdate(message as KGS.KGSMessage_GameUpdate),
+          )
+          break
         case KGS.KGSMessageType.UNJOIN:
           dispatch(kgsSlice.actions.unjoin(message as KGS.KGSMessage_Unjoin))
           break

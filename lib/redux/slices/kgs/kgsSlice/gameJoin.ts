@@ -9,8 +9,5 @@ export const gameJoin = (
   { payload }: PayloadAction<KGS.KGSMessage_GameJoin>,
 ) => {
   state.joinedGamesByID[payload.channelId] = payload
-
-  if (!state.joinedGames.includes(payload.channelId)) {
-    state.joinedGames.push(payload.channelId)
-  }
+  state.activeGameID = payload.channelId
 }

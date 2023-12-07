@@ -7,6 +7,7 @@ import { chat } from './kgsSlice/chat'
 import { gameJoin } from './kgsSlice/gameJoin'
 import { gameList } from './kgsSlice/gameList'
 import { gameRemoved } from './kgsSlice/gameRemoved'
+import { gameUpdate } from './kgsSlice/gameUpdate'
 import { joinRequest } from './kgsSlice/joinRequest'
 import { joinRoom } from './kgsSlice/joinRoom'
 import { roomDesc } from './kgsSlice/roomDesc'
@@ -58,8 +59,8 @@ export interface KGSSliceState {
   serverVersion: null | KGS.KGSServerVersion
 
   // Games
-  joinedGames: number[]
   joinedGamesByID: { [gameID: number]: KGS.KGSMessage_GameJoin }
+  activeGameID: null | number
 }
 
 const initialState: KGSSliceState = {
@@ -76,8 +77,8 @@ const initialState: KGSSliceState = {
   gamesByID: {},
   automatchPrefs: null,
   serverVersion: null,
-  joinedGames: [],
   joinedGamesByID: {},
+  activeGameID: null,
 }
 
 export const kgsSlice = createSliceWithThunks({
@@ -98,6 +99,7 @@ export const kgsSlice = createSliceWithThunks({
     chat: create.reducer(chat),
     setActiveRoom: create.reducer(setActiveRoom),
     gameJoin: create.reducer(gameJoin),
+    gameUpdate: create.reducer(gameUpdate),
     unjoin: create.reducer(unjoin),
 
     // Upstream Message reducer

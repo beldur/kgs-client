@@ -16,6 +16,7 @@ const selectRoomGames = (state: ReduxState) => selectKGS(state).roomGames
 const selectRoomUsers = (state: ReduxState) => selectKGS(state).roomUsers
 const selectRoomOwners = (state: ReduxState) => selectKGS(state).roomOwners
 const selectRoomChats = (state: ReduxState) => selectKGS(state).roomChats
+const selectActiveGameID = (state: ReduxState) => selectKGS(state).activeGameID
 
 export const selectActiveRoomID = (state: ReduxState) =>
   selectKGS(state).activeRoomID
@@ -96,4 +97,11 @@ export const selectRoomsByCategory = createSelector(
       Object.values(roomsByID).toSorted((a, b) => a.name.localeCompare(b.name)),
       (element: KGSRoomWithCategory) => element.category,
     ),
+)
+
+export const selectActiveGame = createSelector(
+  selectActiveGameID,
+  selectGamesByID,
+  (activeGameID, gamesByID) =>
+    activeGameID !== null ? gamesByID[activeGameID] : null,
 )

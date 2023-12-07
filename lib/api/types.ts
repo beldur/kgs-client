@@ -32,6 +32,7 @@ export enum KGSMessageType {
   ANNOUNCE = 'ANNOUNCE',
   MODERATED_CHAT = 'MODERATED_CHAT',
   GAME_JOIN = 'GAME_JOIN',
+  GAME_UPDATE = 'GAME_UPDATE',
   UNJOIN = 'UNJOIN',
   SYNC = 'SYNC',
 }
@@ -215,6 +216,15 @@ export interface KGSMessage_GameJoin extends KGSGameFlags {
   clocks: { [role in KGSPlayerRole]: KGSGameClock } // An object mapping role to the current state of that role's clock. See below for the format of each clock. May not be present when there are no clocks involved in the game.
   actions: KGSGameAction[] // A list of the actions available to each player in the game.
   sgfEvents: SGFEvent[] // A list of SGF events that will rebuild the game to its current point.
+}
+
+/**
+ * Moves have been made in the game or playback.
+ */
+export interface KGSMessage_GameUpdate {
+  type: KGSMessageType.GAME_UPDATE
+  channelId: number
+  sgfEvents: SGFEvent[] // The SGF events needed to represent the changes in the game.
 }
 
 /**

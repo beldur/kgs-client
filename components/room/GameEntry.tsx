@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation'
 
 import type { KGSGameChannel } from '@/lib/api/types'
 import { KGSGameType } from '@/lib/api/types'
+import { kgsSlice } from '@/lib/redux/slices/kgs/kgsSlice'
+import { useDispatch } from '@/lib/redux/store'
 
 import { gameTypeToString } from '../../lib/gameTypeToString'
 import GameEntryScore from './GameEntryScore'
@@ -16,12 +18,12 @@ const GameEntry = ({ game }: GameEntryProps) => {
   const {
     observers,
     moveNum,
-    channelId: gameID,
     over: gameIsOver,
     adjourned: gameIsAdjourned,
   } = game
   const gameIsChallenge = game.gameType === KGSGameType.CHALLENGE
   const router = useRouter()
+  const dispatch = useDispatch()
 
   let { gameType, size: gameSize } = game
   let playerA
@@ -43,8 +45,9 @@ const GameEntry = ({ game }: GameEntryProps) => {
 
   const gameTypeString = gameTypeToString(gameType)
 
-  const handleRowClick = () => {
-    router.push(`/kgs/game/${gameID}`)
+  const handleRowClick = async () => {
+    await dispatch(kgsSlice.actions.joinRequest({ channelId: game.channelId }))
+    router.push(`/kgs/game`)
   }
 
   return (
