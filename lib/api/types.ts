@@ -46,7 +46,7 @@ export type KGSMessage = {
   | KGSUpstreamMessage_SyncRequest
 )
 
-export interface KGSMessage_Empty {}
+export type KGSMessage_Empty = object
 
 // Upstream Messages
 

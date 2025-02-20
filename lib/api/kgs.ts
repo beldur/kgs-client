@@ -34,7 +34,7 @@ export const sendMessage = async <M extends KGSMessage>(
     }
 
     return response
-  } catch (e) {
+  } catch {
     throw new Error('Network error')
   }
 }

@@ -16,7 +16,7 @@ const RoomPage = () => {
   return (
     <>
       <JoinedRoomsList activeRoomID={activeRoom.channelId} />
-      <div className="grid grid-cols-room gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <div>
           <RoomGameList />
           <RoomDescription text={activeRoom.description} />

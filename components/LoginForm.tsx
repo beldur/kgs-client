@@ -12,7 +12,9 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
 
-    onSubmit && onSubmit({ username, password })
+    if (onSubmit) {
+      onSubmit({ username, password })
+    }
   }
 
   return (

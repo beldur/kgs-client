@@ -4,9 +4,9 @@ import type { PropsWithChildren } from 'react'
 
 import { useSelector } from '@/lib/redux/store'
 
-interface AppLoadingProps extends PropsWithChildren {}
+// interface AppLoadingProps extends PropsWithChildren {}
 
-export const AppLoading = ({ children }: AppLoadingProps) => {
+export const AppLoading = ({ children }: PropsWithChildren) => {
   const isInitialized = useSelector(state => state.app.isInitialized)
 
   return isInitialized ? (

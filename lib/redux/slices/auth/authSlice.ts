@@ -31,13 +31,18 @@ export const authSlice = createSliceWithThunks({
       state.isLoggedIn = false
     }),
     clear: create.reducer(() => initialState),
-    login: create.asyncThunk(async ({ name, password }, { signal }) => {
-      const response = await sendMessage(
-        { type: KGSMessageType.LOGIN, locale: 'en_US', name, password },
-        signal,
-      )
+    login: create.asyncThunk(
+      async (
+        { name, password }: { name: string; password: string },
+        { signal },
+      ): Promise<string> => {
+        const response = await sendMessage(
+          { type: KGSMessageType.LOGIN, locale: 'en_US', name, password },
+          signal,
+        )
 
-      return await response.text()
-    }),
+        return await response.text()
+      },
+    ),
   }),
 })
